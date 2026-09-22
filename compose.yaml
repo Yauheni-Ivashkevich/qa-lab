@@ -2,18 +2,25 @@ services:
   postgres:
     image: postgres:16
     restart: unless-stopped
+
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
+
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+
+    secrets:
+      - postgres_password
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
     networks:
       - qa-lab-network
 
@@ -33,3 +40,7 @@ volumes:
 
 networks:
   qa-lab-network:
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
