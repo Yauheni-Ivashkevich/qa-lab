@@ -154,6 +154,62 @@ The project follows several basic security principles:
 * Adminer does not receive the PostgreSQL secret.
 * The GitHub repository uses an SSH deploy key instead of storing GitHub credentials on the server.
 
+## Credential Rotation
+
+PostgreSQL credentials are managed through Docker Secrets.
+
+The PostgreSQL password is stored locally on the server:
+
+```text
+secrets/postgres_password.txt
+```
+
+This file is excluded from Git and is mounted into the PostgreSQL container as:
+
+```text
+/run/secrets/postgres_password
+```
+
+### Rotation procedure
+
+Changing the secret file alone does not change the password of an existing PostgreSQL role.
+
+To rotate the password:
+
+1. Change the password of the PostgreSQL role.
+2. Update `secrets/postgres_password.txt` with the new password.
+3. Recreate the containers so the new secret is mounted.
+4. Verify that the new password works and the old password no longer works.
+5. Verify that database data is still present.
+
+The project has been tested with this procedure using the `qa_user` role.
+
+### Persistence
+
+PostgreSQL data is stored in the named Docker volume:
+
+```text
+qa-lab_postgres_data
+```
+
+Removing containers with:
+
+```bash
+docker compose down
+```
+
+does not remove this volume, so the database data remains available when the environment is started again.
+
+Using:
+
+```bash
+docker compose down -v
+```
+
+removes the Compose-managed named volume and can permanently delete the PostgreSQL data stored in it.
+
+A Docker volume is persistent storage, not a backup. The project should therefore use a separate backup and restore strategy.
+
 ## Useful Commands
 
 Validate Compose configuration:
