@@ -210,6 +210,91 @@ removes the Compose-managed named volume and can permanently delete the PostgreS
 
 A Docker volume is persistent storage, not a backup. The project should therefore use a separate backup and restore strategy.
 
+## Backup & Restore
+
+PostgreSQL backups are created with `pg_dump` using the custom archive format.
+
+Create a backup:
+
+```bash
+BACKUP_FILE="backups/qa_lab_$(date +%Y-%m-%d_%H-%M-%S).dump"
+docker exec qa-lab-postgres-1 pg_dump -U qa_user -d qa_lab -Fc > "$BACKUP_FILE"
+```
+
+Backup files are stored locally under:
+
+```text
+backups/
+```
+
+and are excluded from Git.
+
+Backup files should have restricted permissions:
+
+```bash
+chmod 600 backups/*.dump
+```
+
+### Verify a backup
+
+List the backup archive contents:
+
+```bash
+docker exec -i qa-lab-postgres-1 pg_restore --list < "$BACKUP_FILE"
+```
+
+The archive should contain the expected database objects and table data.
+
+### Restore to a test database
+
+A restore should first be tested in a separate database instead of overwriting the working database.
+
+Create a temporary restore database:
+
+```bash
+docker exec qa-lab-postgres-1 psql -U qa_user -d qa_lab -c "CREATE DATABASE qa_lab_restore_test;"
+```
+
+Restore the backup:
+
+```bash
+docker exec -i qa-lab-postgres-1 pg_restore -U qa_user -d qa_lab_restore_test --exit-on-error < "$BACKUP_FILE"
+```
+
+Verify the restored data:
+
+```bash
+docker exec qa-lab-postgres-1 psql -U qa_user -d qa_lab_restore_test -c "SELECT * FROM test_data;"
+```
+
+The expected test data is:
+
+```text
+1 | Docker volume test
+```
+
+After verification, remove the temporary restore database:
+
+```bash
+docker exec qa-lab-postgres-1 psql -U qa_user -d qa_lab -c "DROP DATABASE qa_lab_restore_test;"
+```
+
+### Important
+
+A Docker volume and a PostgreSQL backup provide different types of protection:
+
+```text
+Docker volume
+    ↓
+persistent database storage
+
+pg_dump backup
+    ↓
+separate recoverable copy of database data
+```
+
+A backup stored on the same server is still vulnerable to loss of that server. A production backup strategy should therefore include storage on a separate system or service.
+
 ## Useful Commands
 
 Validate Compose configuration:
