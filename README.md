@@ -208,7 +208,7 @@ docker compose down -v
 
 removes the Compose-managed named volume and can permanently delete the PostgreSQL data stored in it.
 
-A Docker volume is persistent storage, not a backup. The project should therefore use a separate backup and restore strategy.
+A Docker volume is persistent storage, not a backup. The project includes a separate backup and restore procedure using `pg_dump` and `pg_restore`.
 
 ## Backup & Restore
 
@@ -352,14 +352,35 @@ The repository uses SSH authentication for GitHub, so no GitHub username or pers
 
 The environment is intentionally built step by step to practice real-world QA infrastructure concepts rather than only running containers.
 
-Planned topics include:
+### Completed and Practiced
 
-* PostgreSQL backup and restore
-* Credential rotation
+* Docker and Docker Compose
+* PostgreSQL and database connectivity
+* Docker networking and service discovery
+* Persistent database storage with named volumes
+* Container restart and recovery scenarios
+* PostgreSQL healthchecks
+* Service startup dependencies with `condition: service_healthy`
+* Docker Secrets and least-privilege secret access
+* Credential rotation verification
+* PostgreSQL backup and restore verification
+* Git/GitHub workflow with SSH authentication
+* SSH tunneling for secure local access
+* Basic security and configuration validation
+
+### Planned
+
+* SQL QA scenarios
+* Data integrity testing
+* MySQL testing
+* API testing with Postman
+* API-to-database validation
+* Python pytest automation
+* Database test automation
+* GitHub Actions and CI/CD
+* Automated test reporting and artifacts
 * Docker resource limits
-* Logging and troubleshooting
-* Database connectivity testing
-* CI/CD
-* Automated API and database checks
+* Structured logging and troubleshooting scenarios
+* External/off-server backup storage
 * More advanced secret management
 
